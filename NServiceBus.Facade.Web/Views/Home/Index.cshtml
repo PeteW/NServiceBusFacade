@@ -1,0 +1,80 @@
+﻿<div id="body" ng-app="pageApp" ng-controller="ApiTestingController">
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>NServiceBus integration bridge API</h1>
+            </hgroup>
+            <p>
+                Use this rest api to send commands on the service bus and poll for results
+            </p>
+        </div>
+    </section>
+    <section class="content-wrapper main-content clear-fix">
+        <h3>Test api methods</h3>
+        <ol class="round">
+            <li class="one">
+                <h5>Test POST QueryRequest</h5>
+                <p>
+                    <a href="#" class="lnkPost" ng-click="PostQueryRequest()">Run</a>
+                </p>
+            </li>
+
+            <li class="two">
+                <h5>Test polling for result</h5>
+                <p>
+                    <input type="text" ng-model="requestId"/>
+                    <a href="#" ng-click="PollQueryRequest()">Run</a>
+                    <p>Result is: {{status}}</p>
+                </p>
+            </li>
+        </ol>
+    </section>
+</div>
+<script type="text/javascript">
+    function generateUUID() {
+        var d = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+        });
+        return uuid;
+    };
+    /*
+    angular.filter('removeQuotes', function (text) {
+        return text.replace(/\"/g, '');
+    });
+    */
+    var pageApp = angular.module("pageApp", []);
+
+    pageApp.controller("ApiTestingController", function($scope, $http) {
+
+        $scope.PostQueryRequest = function(e) {
+            $http({
+                method: "POST",
+                url: "/api/v1/queries",
+                data: {
+                    FirstName: "Jon",
+                    LastName: "Doe"
+                }
+            }).success(function (data, status, headers, config) {
+                $scope.requestId = data.replace(/\"/g, '');
+                $scope.status = "PENDING";
+            }).error(function(data, status, headers, config) {
+                alert(status + " - " + data);
+            });
+        };
+
+        $scope.PollQueryRequest = function (e) {
+            $scope.requestId = $scope.requestId || generateUUID();
+            $http({
+                method: "GET",
+                url: "/api/v1/queries/" + $scope.requestId
+            }).success(function (data, status, headers, config) {
+                $scope.status = data.Status;
+            }).error(function (data, status, headers, config) {
+                alert(status + " - " + data);
+            });
+        };
+    });
+</script>
